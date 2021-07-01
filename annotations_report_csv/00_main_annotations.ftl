@@ -1,8 +1,28 @@
 <#include '10_constants.ftl'>
-<#import '20_utils.ftl' as utils>
-<#import '30_traversal.ftl' as traversal>
-<#import '40_layout.ftl' as layout>
+<#import '20_customization.ftl' as custom>
+<#import '30_utils.ftl' as utils>
+<#import '40_traversal.ftl' as traversal>
+<#import '50_layout_rtf.ftl' as layout_rtf>
+<#import '51_layout_csv.ftl' as layout_csv>
 <#import 'macros_common_general.ftl' as com>
+
+<#-- introduced in FreeMarker 2.3.24 -->
+<#-- <#assign output_extension = custom.output_extension!(.output_format)> -->
+
+<#assign output_extension = custom.output_extension!>
+
+<#-- Initialize the following variables:
+	* _dossierHeader (:DossierHashModel) //The header document of a proper or 'raw' dossier, can be empty
+	* _subject (:DocumentHashModel) //The dossier subject document or, if not in a dossier context, the root document, never empty
+	-->
+<@com.initializeMainVariables/>
+
+<#assign layoutMetadata = {
+  'dossier' : _dossierHeader!,
+  'subject' : _subject,
+  'columnsOrdered' : layout_csv.reportTableProperties?keys
+}>
+
 
 <#assign rootEntity = entity.root>
 <#assign rootSubject = com.getReportSubject(rootDocument)>
@@ -84,35 +104,35 @@
 <#function annotationMapper annotation>
   <#local ah = annotation>
   <#return {
-    'name'                    : ah.annotation.AdminInfo.Name,
-    'type'                    : ah.annotation.AdminInfo.AnnotationType,
-    'authority'               : ah.annotation.AdminInfo.Authority,
-    'dataProtection'          : ah.annotation.AdminInfo.DataProtection,
-    'docType'                 : ah.annotation.documentType,
-    'status'                  : ah.status,
-    'confidentiality'         : ah.confidentiality,
-    'agreement'               : ah.agreement,
-    'evalInfo'                : ah.annotation.EvalInfo,
-    'remarks'                 : ah.annotation.EvalInfo.Remarks,
-    'isWaiverable'            : ah.annotation.EvalInfo.DataWaiverAcceptable,
-    'entityName'              : ah.entityDocument.name,
-    'entityType'              : ah.entityDocument.documentType,
-    'entityID'                : ah.entityDocument.documentKey,
-    'entityDoc'               : ah.entityDocument,
-    'sectionNode'             : ah.sectionNode,
-    'sectionName'             : ah.sectionName,
-    'sectionNumber'           : ah.sectionNumber,
-    'sectionDocType'          : ah.sectionDocType,
-    'entityFunction'          : ah.entityFunction,
-    'docID'                   : ah.sectionDoc.documentKey,
-    'docUrl'                  : ah.docUrl,
-    'sectionDoc'              : ah.sectionDoc,
-    'sectionDocAnnots'        : ah.sectionDoc.annotations,
-    'key'                     : ah.key,
-    'reliability'             : ah.reliability,
-    'isActiveSubstanceOfRoot' : ah.isActiveSubstanceOfRoot,
-    'level'                   : ah.level,
-    'historyList'             : ah.historyList
+    FIELD.name                    : ah.annotation.AdminInfo.Name,
+    FIELD.type                    : ah.annotation.AdminInfo.AnnotationType,
+    FIELD.authority               : ah.annotation.AdminInfo.Authority,
+    FIELD.dataProtection          : ah.annotation.AdminInfo.DataProtection,
+    FIELD.docType                 : ah.annotation.documentType,
+    FIELD.status                  : ah.status,
+    FIELD.confidentiality         : ah.confidentiality,
+    FIELD.agreement               : ah.agreement,
+    FIELD.evalInfo                : ah.annotation.EvalInfo,
+    FIELD.remarks                 : ah.annotation.EvalInfo.Remarks,
+    FIELD.isWaiverable            : ah.annotation.EvalInfo.DataWaiverAcceptable,
+    FIELD.entityName              : ah.entityDocument.name,
+    FIELD.entityType              : ah.entityDocument.documentType,
+    FIELD.entityID                : ah.entityDocument.documentKey,
+    FIELD.entityDoc               : ah.entityDocument,
+    FIELD.sectionNode             : ah.sectionNode,
+    FIELD.sectionName             : ah.sectionName,
+    FIELD.sectionNumber           : ah.sectionNumber,
+    FIELD.sectionDocType          : ah.sectionDocType,
+    FIELD.entityFunction          : ah.entityFunction,
+    FIELD.docID                   : ah.sectionDoc.documentKey,
+    FIELD.docUrl                  : ah.docUrl,
+    FIELD.sectionDoc              : ah.sectionDoc,
+    FIELD.sectionDocAnnots        : ah.sectionDoc.annotations,
+    FIELD.key                     : ah.key,
+    FIELD.reliability             : ah.reliability,
+    FIELD.isActiveSubstanceOfRoot : ah.isActiveSubstanceOfRoot,
+    FIELD.level                   : ah.level,
+    FIELD.historyList             : ah.historyList
   }>
 </#function>
 
@@ -153,18 +173,28 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
 <#assign docHashSeq = traversal.traverseAndCollect(rootEntity, collectDocumentHash)>
 <#-- Depends rootComponentsFunctionHash definition in outer scope -->
 <#assign annotationSeq = utils.mapcat(populateAnnotationHash, docHashSeq)>
-<#assign annotationSeq = utils.map(annotationMapper, annotationSeq)>
+<#assign dataTable = utils.map(annotationMapper, annotationSeq)>
 
+<#if output_extension == "RTF">
+  <#assign reportData = computeRtfReportData(dataTable)>
+  <@layout_rtf.annotationsLayoutSubstance reportData rootType/>
+<#elseif output_extension == "CSV">
+  <#assign reportData = {SINGLETON_IND: {SINGLETON_IND: dataTable}}>
+  <@layout_csv.produceReport reportData layoutMetadata/>
+</#if>
+
+
+<#function computeRtfReportData dataTable>
 <#-- select() and filter() table data for report tables   -->
 <#assign activeSubstanceAnnots = []>
 <#assign nonActiveSubstanceAnnots = []>
 
-<#assign mainAnnots = utils.filterIn(isRootAnnotation, annotationSeq)>
-<#assign annotationSeqNotMain = utils.filterOut(isRootAnnotation, annotationSeq)>
+<#assign mainAnnots = utils.filterIn(isRootAnnotation, dataTable)>
+<#assign annotationSeqNotMain = utils.filterOut(isRootAnnotation, dataTable)>
 
 <#-- Separation based on being active substance is relevant for mixture -->
 <#if rootType==ENTITY.MIXTURE>
-  <#assign dts = createMixtureDataTables(annotationSeq)>
+  <#assign dts = createMixtureDataTables(dataTable)>
   <#assign
     activeSubstanceAnnots = dts.activeSubstanceAnnots
     nonActiveSubstanceAnnots = dts.nonActiveSubstanceAnnots
@@ -174,23 +204,20 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
   <#assign activeSubstanceDataTables = utils.groupBy(['entityName'], activeSubstanceAnnots)>
   <#assign nonActiveSubstanceDataTables = utils.groupBy(['entityName'], nonActiveSubstanceAnnots)>
   <#assign distantDescendantDataTables = {SINGLETON_IND: distantDescendantAnnots}>
-  <#assign reportData =
-    computeOutlineDataMixture(
+  <#return computeOutlineDataMixture(
       rootName,
       mainDataTables,
       activeSubstanceDataTables,
       nonActiveSubstanceDataTables,
       distantDescendantDataTables
     )>
-  <@layout.annotationsLayoutMixture reportData rootType/>
 <#elseif rootType==ENTITY.SUBSTANCE>
-  <#assign reportData =
-  computeOutlineDataSubstance(
+  <#return computeOutlineDataSubstance(
     rootName,
     mainAnnots
   )>
-  <@layout.annotationsLayoutSubstance reportData ENTITY.SUBSTANCE/>
 </#if>
+</#function>
 
 <#function computeOutlineDataMixture
 rootName
@@ -246,5 +273,3 @@ distantDescendantDataTables
     <#return outlineData>
   </#if>
 </#function>
-
-

@@ -1,36 +1,42 @@
 <#assign rootEntity = entity.root>
-<#assign maxLoop=5>
+<#assign DEFAULT_MAX_LOOP=5>
 
-<#function traverseAndCollect rootEntity documentCollectorFun>
+<#function traverseAndCollect rootEntity documentCollectorFun maxLoop=''>
   <#-- Utility list to remember tarversed entities -->
   <#assign traversedEntityKeyList = [rootEntity.documentKey]>
+  <#-- arguments: docElementNode, entityDocument, sectionNode, level
+    returns: a seq containing the relevant document  -->
   <#assign documentCollectorFun = documentCollectorFun>
+  <#local actualMaxLoop = maxLoop>
+  <#if !(actualMaxLoop?has_content)>
+    <#local actualMaxLoop = DEFAULT_MAX_LOOP>
+  </#if>
   <#-- Utility list to remember entities yet to be traversed -->
-  <#assign toTravereseEntityList = []>
+  <#assign toTraverseEntityList = []>
   <#-- Traverse the main entity -->
   <#local mainAnnots = traverseEntity(rootEntity, [])/>
-  <#-- Sequence for storing annotation entries of form: [{"key1": "value1"}, {"key2": "value2"}] -->
+  <#-- Sequence for storing annotation entries of form: [{'key1': 'value1'}, {'key2': 'value2'}] -->
   <#local docHashSeq = mainAnnots>
   <#-- Go throught the found referenced entities and traverse them. NOTE: the list can grow further as entities can reference further entities. Unclear whether this works well in FreeMarker -->
   <#-- FreeMarker does not support do-while loops as such do this workaround with maxLoop -->
-  <#list 1..maxLoop as x>
-    <#-- Remove documents that have been already traversed -->
-    <#assign toTravereseEntityList = utils.removeDocumentWitKey(
-      toTravereseEntityList,
-      traversedEntityKeyList
-      )>
-    <#if !(toTravereseEntityList?has_content)>
-      <#-- Stop looping if there is nothing to traverse -->
-      <#break>
-    </#if>
-    <#-- Travers each entity from the list -->
-    <#list toTravereseEntityList as entityItem>
-      <#local traversedEntityKeyList =
-        traversedEntityKeyList + [entityItem.documentKey]>
-      <#local docHashSeq = traverseEntity(entityItem docHashSeq)/>
-    </#list>
+<#list 1..actualMaxLoop as x>
+  <#-- Remove documents that have been already traversed -->
+  <#assign toTraverseEntityList = utils.removeDocumentWitKey(
+    toTraverseEntityList,
+    traversedEntityKeyList
+  )>
+  <#if !(toTraverseEntityList?has_content)>
+    <#-- Stop looping if there is nothing to traverse -->
+    <#break>
+  </#if>
+  <#-- Travers each entity from the list -->
+  <#list toTraverseEntityList as entityItem>
+    <#local traversedEntityKeyList =
+      traversedEntityKeyList + [entityItem.documentKey]>
+    <#local docHashSeq = traverseEntity(entityItem docHashSeq)/>
   </#list>
-  <#return docHashSeq>
+</#list>
+<#return docHashSeq>
 </#function>
 
 <#----------------------------------------------->
@@ -38,7 +44,6 @@
 <#----------------------------------------------->
 
 <#function traverseEntity entityDoc docHashSeq>
-  <#-- if: ["SUBSTANCE", "MIXTURE", "TEMPLATE"]?seq_contains(entityDoc.documentType) -->
   <#if utils.isCompositeEntityDocument(entityDoc)>
     <#return traverseCompositeEntity(entityDoc docHashSeq)/>
   <#else>
@@ -62,29 +67,29 @@
   <#return traverseToc(tableOfContents entityDoc docHashSeq 0)/>
 </#function>
 
-<#function traverseDoc docElementNode
-  entityDocument
-  docHashSeq
-  level=0
-  sectionNode=""
-  isDocument=true>
+<#function traverseDoc
+docElementNode
+entityDocument
+docHashSeq
+level=0
+sectionNode=''
+isDocument=true>
   <#local newDocHashSeq = docHashSeq>
   <#if docElementNode?has_content>
     <#-- Annotations are only at document level -->
-    <#if isDocument>
-      <#local newDocHashSeq = docHashSeq + [documentCollectorFun(
-        docElementNode, entityDocument, sectionNode, level
-      )]>
-    </#if>
-    <#-- Check if the element node is a reference field (single or multiple) and remember referenced entities for later traversal in toTravereseEntityList -->
-    <#assign toTravereseEntityList = utils.checkAndRememberReferencedEntity(
+    <#local newDocHashSeq = docHashSeq + documentCollectorFun(
+      docElementNode, entityDocument, sectionNode, level, isDocument
+    )>
+    <#-- Check if the element node is a reference field (single or multiple) and remember referenced entities for later traversal in toTraverseEntityList -->
+    <#assign toTraverseEntityList = utils.checkAndRememberReferencedEntity(
       docElementNode,
-      toTravereseEntityList,
+      toTraverseEntityList,
       traversedEntityKeyList
     ) />
     <#-- iterate through the child structure elements of this document element if there are any and do a recursive call -->
     <#if docElementNode?children?has_content>
       <#list docElementNode?children as child>
+        <#-- sequence remains unchanged as `traverseDoc' is called for entityDiscover side-effect -->
         <#local newDocHashSeq = traverseDoc(
           child
           entityDocument

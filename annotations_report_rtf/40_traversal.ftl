@@ -12,7 +12,7 @@
     <#local actualMaxLoop = DEFAULT_MAX_LOOP>
   </#if>
   <#-- Utility list to remember entities yet to be traversed -->
-  <#assign toTravereseEntityList = []>
+  <#assign toTraverseEntityList = []>
   <#-- Traverse the main entity -->
   <#local mainAnnots = traverseEntity(rootEntity, [])/>
   <#-- Sequence for storing annotation entries of form: [{'key1': 'value1'}, {'key2': 'value2'}] -->
@@ -21,16 +21,16 @@
   <#-- FreeMarker does not support do-while loops as such do this workaround with maxLoop -->
 <#list 1..actualMaxLoop as x>
   <#-- Remove documents that have been already traversed -->
-  <#assign toTravereseEntityList = utils.removeDocumentWitKey(
-    toTravereseEntityList,
+  <#assign toTraverseEntityList = utils.removeDocumentWitKey(
+    toTraverseEntityList,
     traversedEntityKeyList
   )>
-  <#if !(toTravereseEntityList?has_content)>
+  <#if !(toTraverseEntityList?has_content)>
     <#-- Stop looping if there is nothing to traverse -->
     <#break>
   </#if>
   <#-- Travers each entity from the list -->
-  <#list toTravereseEntityList as entityItem>
+  <#list toTraverseEntityList as entityItem>
     <#local traversedEntityKeyList =
       traversedEntityKeyList + [entityItem.documentKey]>
     <#local docHashSeq = traverseEntity(entityItem docHashSeq)/>
@@ -68,22 +68,22 @@
 </#function>
 
 <#function traverseDoc
-  docElementNode
-  entityDocument
-  docHashSeq
-  level=0
-  sectionNode=''
-  isDocument=true>
+docElementNode
+entityDocument
+docHashSeq
+level=0
+sectionNode=''
+isDocument=true>
   <#local newDocHashSeq = docHashSeq>
   <#if docElementNode?has_content>
     <#-- Annotations are only at document level -->
     <#local newDocHashSeq = docHashSeq + documentCollectorFun(
       docElementNode, entityDocument, sectionNode, level, isDocument
     )>
-    <#-- Check if the element node is a reference field (single or multiple) and remember referenced entities for later traversal in toTravereseEntityList -->
-    <#assign toTravereseEntityList = utils.checkAndRememberReferencedEntity(
+    <#-- Check if the element node is a reference field (single or multiple) and remember referenced entities for later traversal in toTraverseEntityList -->
+    <#assign toTraverseEntityList = utils.checkAndRememberReferencedEntity(
       docElementNode,
-      toTravereseEntityList,
+      toTraverseEntityList,
       traversedEntityKeyList
     ) />
     <#-- iterate through the child structure elements of this document element if there are any and do a recursive call -->
