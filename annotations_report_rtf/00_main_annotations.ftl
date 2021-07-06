@@ -136,13 +136,9 @@
   }>
 </#function>
 
-<#-- TODO remove necessity to define these outer scope variables for map/filter sequence functions -->
 <#assign
 rootComponentsFunctionHash = utils.getComponentKeyToFunctionHash(rootSubject),
-rootActiveSubstanceKeys = utils.getActiveSubstanceKeyList(rootSubject),
-rootComponentKeys = utils.getComponentKeyList(rootSubject)
-
-rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
+>
 
 <#function createMixtureDataTables annotationSeq>
   <#local rootComponentAnnots = utils.filterIn(isInRootComponents, annotationSeq)>
@@ -154,16 +150,23 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
   }>
 </#function>
 
+<#function annotIsInComponentCollection annotation components>
+  <#return components?seq_contains(annotation.entityID)>
+</#function>
+
 <#function isInActiveSubstances annotation><#-- TO_LAMBDA -->
-  <#return rootActiveSubstanceKeys?seq_contains(annotation.entityID)>
+  <#local rootActiveSubstanceKeys = utils.getActiveSubstanceKeyList(rootSubject)>
+  <#return annotIsInComponentCollection(annotation, rootActiveSubstanceKeys)>
 </#function>
 
 <#function isInRootComponents annotation><#-- TO_LAMBDA -->
-  <#return rootComponentKeys?seq_contains(annotation.entityID)>
+  <#local rootComponentKeys = utils.getComponentKeyList(rootSubject)>
+  <#return annotIsInComponentCollection(annotation, rootComponentKeys)>
 </#function>
 
 <#function isDistantDescendantAnnotation annotation><#-- TO_LAMBDA -->
-  <#return !(rootAndComponentDocumentKeys?seq_contains(annotation.entityID))>
+  <#local rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
+  <#return !(annotIsInComponentCollection(annotation, rootAndComponentDocumentKeys))>
 </#function>
 
 <#function isRootAnnotation annotation><#-- TO_LAMBDA -->
