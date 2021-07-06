@@ -57,7 +57,7 @@
   <#list columnsOrdered as field>
     <#local cells = cells + [normalizeValue(rowHash, field)]>
   </#list>
-  ${cells?join(",")}<#t>
+  ${cells?join(",") + '\n'}<#t>
 </#macro>
 
 <#function normalizeValue rowHash key>
