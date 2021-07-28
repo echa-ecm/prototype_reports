@@ -89,14 +89,14 @@ isDocument=true>
     <#-- iterate through the child structure elements of this document element if there are any and do a recursive call -->
     <#if docElementNode?children?has_content>
       <#list docElementNode?children as child>
-        <#-- sequence remains unchanged as `traverseDoc' is called for entityDiscover side-effect -->
+        <#--  docHashSeq is unchanged when (isDocument=False) -->
         <#local newDocHashSeq = traverseDoc(
-          child
-          entityDocument
-          newDocHashSeq
-          level+1
-          sectionNode
-          false) >
+         docElementNode=child
+         entityDocument=entityDocument
+         docHashSeq=newDocHashSeq
+         level=level+1
+         sectionNode=sectionNode
+         isDocument=false) >
       </#list>
     </#if>
   </#if>
