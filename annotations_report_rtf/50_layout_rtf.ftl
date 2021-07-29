@@ -1,87 +1,81 @@
 
-<#assign tableKindToName = {'ROOT': 'Mixture', 'ACTIVE': 'Active substance', 'NON_ACTIVE': 'Non-active component', 'DISTANT_DESCENDANTS': 'Sub-entity'}>
-<#assign tableKindToColor = {'ROOT': 'green', 'ACTIVE': 'purple', 'NON_ACTIVE': 'olive', 'DISTANT_DESCENDANTS':  'blue'}>
+<#assign chapterKindToName = {'ROOT': 'Mixture', 'ACTIVE': 'Active substance', 'NON_ACTIVE': 'Non-active component', 'DISTANT_DESCENDANTS': 'Sub-entity'}>
+<#assign chapterKindToColor = {'ROOT': 'green', 'ACTIVE': 'purple', 'NON_ACTIVE': 'olive', 'DISTANT_DESCENDANTS':  'blue'}>
 <#assign entityToName = {'SUBSTANCE': 'substance', 'MIXTURE': 'mixture', 'TEMPLATE': 'template'}>
 <#assign documentPathColl = ''>
 
-<#function generateChapterTitle tableKind rootType>
-  <#if tableKind == TABLE.ROOT>
+<#function generateChapterTitle chapterKind rootType>
+  <#if chapterKind == CHAPTER.ROOT>
     <#return 'Main ${entityToName[rootType]}'>
-  <#elseif tableKind == TABLE.ACTIVE>
+  <#elseif chapterKind == CHAPTER.ACTIVE>
     <#return 'Active substance'>
-  <#elseif tableKind == TABLE.NON_ACTIVE>
+  <#elseif chapterKind == CHAPTER.NON_ACTIVE>
     <#return 'Other components'>
-  <#elseif tableKind == TABLE.DISTANT_DESCENDANTS>
+  <#elseif chapterKind == CHAPTER.DISTANT_DESCENDANTS>
     <#return 'Mixture-in-mixture components'>
   </#if>
-  <#stop 'Unknown table type: ' + tableKind>
+  <#stop 'Unknown table type: ' + chapterKind>
 </#function>
 
-<#function generateTableTitle tableKind rootType>
-  <#if tableKind == TABLE.ROOT>
+<#function generateTableTitle chapterKind rootType>
+  <#if chapterKind == CHAPTER.ROOT>
     <#return 'Annotations on: '>
-  <#elseif tableKind == TABLE.ACTIVE>
+  <#elseif chapterKind == CHAPTER.ACTIVE>
     <#return 'Annotations on active substance mixture component: '>
-  <#elseif tableKind == TABLE.NON_ACTIVE>
+  <#elseif chapterKind == CHAPTER.NON_ACTIVE>
     <#return 'Annotations on other mixture components: '>
-  <#elseif tableKind == TABLE.DISTANT_DESCENDANTS>
+  <#elseif chapterKind == CHAPTER.DISTANT_DESCENDANTS>
     <#return 'Annotations on mixture-in-mixture components'>
   </#if>
-  <#stop 'Unknown table type: ' + tableKind>
+  <#stop 'Unknown table type: ' + chapterKind>
 </#function>
 
 <#-------------------------------------------------->
 <#-- Main template file for a list of Annotations -->
 <#-------------------------------------------------->
-<#macro annotationsChapter entityTablesHash chapterNum tableKind rootType>
+<#macro annotationsChapter entityTablesHash chapterNum chapterKind rootType>
   <#compress>
     <chapter label='${chapterNum}'>
-      <title role='HEAD-1'>${generateChapterTitle(tableKind, rootType)}</title>
+      <title role='HEAD-1'>${generateChapterTitle(chapterKind, rootType)}</title>
       <#list entityTablesHash?keys as entityName>
-        <#local isSingleton = (entityName == SINGLETON_IND)>
-        <#local tableTitle = generateTableTitle(tableKind, rootType) + isSingleton?string('', ' [${entityName}]')>
         <#local entityAnnotGroup = entityTablesHash[entityName]>
-          <table border='1'>
-            <title>${tableTitle}</title>
-            <col width='40%' />
-            <col width='60%' />
-            <tbody>
-              <tr>
-                <th><?dbfo bgcolor='#C6C9F0' ?><emphasis role='bold'>Document details</emphasis></th>
-                <th><?dbfo bgcolor='#C6C9F0' ?><emphasis role='bold'>Annotation details</emphasis></th>
-              </tr>
-
-              <#list entityAnnotGroup as annotation>
-                <@tableRowForAnnotations annotation tableKind/>
-              </#list>
-              ${documentPathColl}
-            </tbody>
-          </table>
+        <@annotationsTable/>
       </#list>
     </chapter>
   </#compress>
 </#macro>
 
+<#macro annotationsTable annotations chapterKind rootType>
+<#local isSingleton = (entityName == SINGLETON_IND)>
+<#local tableTitle = generateTableTitle(chapterKind, rootType) + isSingleton?string('', ' [${entityName}]')>
+<table border='1'>
+  <title>${tableTitle}</title>
+  <col width='40%' />
+  <col width='60%' />
+  <tbody>
+    <tr>
+      <th><?dbfo bgcolor='#C6C9F0' ?><emphasis role='bold'>Document details</emphasis></th>
+      <th><?dbfo bgcolor='#C6C9F0' ?><emphasis role='bold'>Annotation details</emphasis></th>
+    </tr>
+
+    <#list annotations as annotation>
+      <@tableRowForAnnotations annotation chapterKind/>
+    </#list>
+    ${documentPathColl}
+  </tbody>
+</table>
+</#macro>
+
 <#-------------------------------------------------->
 <#-- Main template file for a list of Annotations -->
 <#-------------------------------------------------->
-<#macro dummyBook>
-  <#compress>
-    <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
-    <chapter label='1'>
-      <title role='HEAD-1'>asd</title>
-      test
-    </chapter>
-    </book>
-  </#compress>
-</#macro>
 
 <#macro columnRecord description content>
   <para><emphasis role='bold'>${description}:</emphasis> ${content}</para>
 </#macro>
 
 
-<#macro generalDocumentDetails annotation tableKind isBPR=false>
+<#macro generalDocumentDetails annotation chapterKind isBPR=false>
   <#local document = annotation.sectionDoc>
   <#local sectionName = annotation.sectionName>
   <#local sectionDocType = annotation.sectionDocType>
@@ -96,8 +90,8 @@
 
   <para>
     <emphasis role='bold'>Document UUID of the
-      <#if TABLE[tableKind]??>
-        <phrase role='${tableKindToColor[tableKind]}'><@com.text tableKindToName[tableKind]/>:</phrase>
+      <#if CHAPTER[chapterKind]??>
+        <phrase role='${chapterKindToColor[chapterKind]}'><@com.text chapterKindToName[chapterKind]/>:</phrase>
       </#if>
     </emphasis>
     <#assign docUrl=iuclid.webUrl.documentView(document.documentKey) />
@@ -157,7 +151,7 @@
   </#compress>
 </#macro>
 
-<#macro tableRowForAnnotations annotation tableKind>
+<#macro tableRowForAnnotations annotation chapterKind>
   <#local documentName=annotation.entityName>
   <#local documentUUID=annotation.docID.uuid>
   <#local dossierUUID=annotation.docID.snapshotUuid>
@@ -167,16 +161,16 @@
 
     <tr>
       <td><?dbfo bgcolor='#D1EEF5' ?>
-        <#if tableKind == TABLE.ACTIVE>
+        <#if chapterKind == CHAPTER.ACTIVE>
           <@activeSubstanceDocumentDetails annotation/>
         </#if>
-        <#if tableKind == TABLE.NON_ACTIVE>
+        <#if chapterKind == CHAPTER.NON_ACTIVE>
           <@nonActiveSubstanceDocumentDetails annotation/>
         </#if>
-        <#if tableKind == TABLE.DISTANT_DESCENDANTS>
+        <#if chapterKind == CHAPTER.DISTANT_DESCENDANTS>
           <@distantDescendantsDocumentDetails annotation/>
         </#if>
-        <@generalDocumentDetails annotation tableKind/>
+        <@generalDocumentDetails annotation chapterKind/>
       </td>
       <td>
 
@@ -205,6 +199,17 @@
 
   </#compress>
 </#macro>
+
+<!-- Helper Macros and functions -->
+
+<#macro contentToReport>
+  <#compress>
+    <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
+      <#nested>
+    </book>
+  </#compress>
+</#macro>
+
 
 <#macro entityNameDetailRecords annotation>
   <#local entityName = entityToName[annotation.entityType]>

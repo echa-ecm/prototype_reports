@@ -2,7 +2,7 @@
   <#global LEVELNAME = {'COMPOSITE_ENTITY': 'Top level'}>
     <#global ENTITY = {'SUBSTANCE': 'SUBSTANCE', 'MIXTURE': 'MIXTURE', 'TEMPLATE': 'TEMPLATE'}>
       <#global SECTION = {'ROOT': 'ROOT', 'ACTIVE': 'ACTIVE', 'NON_ACTIVE': 'NON_ACTIVE', 'DISTANT_DESCENDANTS':  'DISTANT_DESCENDANTS'}>
-        <#global TABLE = {
+        <#global CHAPTER = {
           'ROOT'                : 'ROOT',
           'ACTIVE'              : 'ACTIVE',
           'NON_ACTIVE'          : 'NON_ACTIVE',
