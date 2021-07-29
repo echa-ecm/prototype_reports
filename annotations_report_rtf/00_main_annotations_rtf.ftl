@@ -23,7 +23,6 @@
   'columnsOrdered' : layout_csv.reportTableProperties?keys
 }>
 
-
 <#assign rootEntity = entity.root>
 <#assign rootSubject = com.getReportSubject(rootDocument)>
 <#assign rootType = rootSubject.documentType>
@@ -136,17 +135,17 @@
   }>
 </#function>
 
-<#-- TODO remove necessity to define these outer scope variables for map/filter sequence functions -->
 <#assign
-rootComponentsFunctionHash = utils.getComponentKeyToFunctionHash(rootSubject),
-rootActiveSubstanceKeys = utils.getActiveSubstanceKeyList(rootSubject),
+rootComponentsFunctionHash = utils.getComponentKeyToFunctionHash(rootSubject)
 rootComponentKeys = utils.getComponentKeyList(rootSubject)
-
-rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
+rootActiveSubstanceKeys = utils.getActiveSubstanceKeyList(rootSubject)
+rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]
+>
 
 <#function createMixtureDataTables annotationSeq>
   <#local rootComponentAnnots = utils.filterIn(isInRootComponents, annotationSeq)>
   <#local activeSubstanceAnnots = utils.filterIn(isInActiveSubstances, annotationSeq)>
+  
   <#return {
     'distantDescendantAnnots': utils.filterIn(isDistantDescendantAnnotation, annotationSeq),
     'activeSubstanceAnnots': activeSubstanceAnnots,
@@ -154,16 +153,20 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
   }>
 </#function>
 
+<#function annotInKeySeq annotation components>
+  <#return components?seq_contains(annotation.entityID)>
+</#function>
+
 <#function isInActiveSubstances annotation><#-- TO_LAMBDA -->
-  <#return rootActiveSubstanceKeys?seq_contains(annotation.entityID)>
+  <#return annotInKeySeq(annotation, rootActiveSubstanceKeys)>
 </#function>
 
 <#function isInRootComponents annotation><#-- TO_LAMBDA -->
-  <#return rootComponentKeys?seq_contains(annotation.entityID)>
+  <#return annotInKeySeq(annotation, rootComponentKeys)>
 </#function>
 
 <#function isDistantDescendantAnnotation annotation><#-- TO_LAMBDA -->
-  <#return !(rootAndComponentDocumentKeys?seq_contains(annotation.entityID))>
+  <#return !(annotInKeySeq(annotation, rootAndComponentDocumentKeys))>
 </#function>
 
 <#function isRootAnnotation annotation><#-- TO_LAMBDA -->
@@ -183,7 +186,6 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
   <@layout_csv.produceReport reportData layoutMetadata/>
 </#if>
 
-
 <#function computeRtfReportData dataTable>
 <#-- select() and filter() table data for report tables   -->
 <#assign activeSubstanceAnnots = []>
@@ -191,6 +193,8 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
 
 <#assign mainAnnots = utils.filterIn(isRootAnnotation, dataTable)>
 <#assign annotationSeqNotMain = utils.filterOut(isRootAnnotation, dataTable)>
+
+<#assign mainChapterData = utils.groupBy(['entityName'], mainAnnots)>
 
 <#-- Separation based on being active substance is relevant for mixture -->
 <#if rootType==ENTITY.MIXTURE>
@@ -200,13 +204,12 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
     nonActiveSubstanceAnnots = dts.nonActiveSubstanceAnnots
     distantDescendantAnnots = dts.distantDescendantAnnots
   >
-  <#assign mainDataTables = utils.groupBy(['entityName'], mainAnnots)>
   <#assign activeSubstanceDataTables = utils.groupBy(['entityName'], activeSubstanceAnnots)>
   <#assign nonActiveSubstanceDataTables = utils.groupBy(['entityName'], nonActiveSubstanceAnnots)>
   <#assign distantDescendantDataTables = {SINGLETON_IND: distantDescendantAnnots}>
   <#return computeOutlineDataMixture(
       rootName,
-      mainDataTables,
+      mainChapterData,
       activeSubstanceDataTables,
       nonActiveSubstanceDataTables,
       distantDescendantDataTables
@@ -214,7 +217,7 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
 <#elseif rootType==ENTITY.SUBSTANCE>
   <#return computeOutlineDataSubstance(
     rootName,
-    mainAnnots
+    mainChapterData
   )>
 </#if>
 </#function>
@@ -260,10 +263,10 @@ distantDescendantDataTables
     SECTION.ROOT: mainAnnots
   }>
   <#local outlineData = mainAnnotData>
-  <#if rootType == 'SUBSTANCE'>
+  <#if rootType == ENTITY.SUBSTANCE>
     <#return outlineData>
   </#if>
-  <#if rootType == 'MIXTURE'>
+  <#if rootType == ENTITY.MIXTURE>
     <#local componentAnnotData = {
         SECTION.ACTIVE: activeSubstanceAnnots,
         SECTION.NON_ACTIVE: nonActiveSubstanceAnnots,

@@ -62,6 +62,20 @@
   </#compress>
 </#macro>
 
+<#-------------------------------------------------->
+<#-- Main template file for a list of Annotations -->
+<#-------------------------------------------------->
+<#macro dummyBook>
+  <#compress>
+    <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
+    <chapter label='1'>
+      <title role='HEAD-1'>asd</title>
+      test
+    </chapter>
+    </book>
+  </#compress>
+</#macro>
+
 <#macro columnRecord description content>
   <para><emphasis role='bold'>${description}:</emphasis> ${content}</para>
 </#macro>
@@ -108,10 +122,12 @@
 
 <#macro annotationsLayoutSubstance reportData rootType>
   <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
-    <#list reportData?keys as chapterKey>
-      <#local chapterHash = reportData[chapterKey]>
-      <@produceChapter chapterHash rootType chapterKey 1/>
-    </#list>
+    <#if reportData?size gt 0>
+      <#list reportData?keys as chapterKey>
+        <#local chapterHash = reportData[chapterKey]>
+        <@produceChapter chapterHash rootType chapterKey 1/>
+      </#list>
+    </#if>
   </book>
 </#macro>
 
