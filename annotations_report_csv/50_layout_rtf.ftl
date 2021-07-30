@@ -95,7 +95,7 @@
   </para>
 
   <#if sectionName != LEVELNAME.COMPOSITE_ENTITY && isBPR>
-    <para><emphasis role='bold'>Annex II/III requirement: </emphasis><@com.text SECTION_TO_ANNEX_REQUIREMENT[sectionName]!'None' /></para>
+    <para><emphasis role='bold'>Annex II/III requirement: </emphasis><@com.text CHAPTER_TO_ANNEX_REQUIREMENT[sectionName]!'None' /></para>
   </#if>
   <para><emphasis role='bold'>Section Number:</emphasis>${annotation.sectionNumber}</para>
   <para><emphasis role='bold'>Section Name:</emphasis>${sectionName}</para>
@@ -106,13 +106,16 @@
   </#if>
 </#macro>
 
-<#macro annotationsLayoutSubstance reportData rootType>
+<#macro produceReport reportData metadata>
+  <#local rootType = metadata.rootType>
+  <#compress>
   <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
     <#list reportData?keys as chapterKey>
       <#local chapterHash = reportData[chapterKey]>
       <@produceChapter chapterHash rootType chapterKey 1/>
     </#list>
   </book>
+  </#compress>
 </#macro>
 
 <#macro produceChapter chapterHash rootType chapterKey chapterNum>

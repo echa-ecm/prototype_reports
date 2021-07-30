@@ -14,7 +14,7 @@
   <#elseif chapterKind == CHAPTER.DISTANT_DESCENDANTS>
     <#return 'Mixture-in-mixture components'>
   </#if>
-  <#stop 'Unknown table type: ' + chapterKind>
+  <#stop 'Unknown chapter type: ' + chapterKind>
 </#function>
 
 <#function generateTableTitle chapterKind rootType>
@@ -38,16 +38,17 @@
     <chapter label='${chapterNum}'>
       <title role='HEAD-1'>${generateChapterTitle(chapterKind, rootType)}</title>
       <#list entityTablesHash?keys as entityName>
+        <#local isSingleton = (entityName == SINGLETON_IND)>
+        <#local tableTitle =
+          generateTableTitle(chapterKind, rootType) + isSingleton?string('', ' [${entityName}]')>
         <#local entityAnnotGroup = entityTablesHash[entityName]>
-        <@annotationsTable/>
+        <@annotationsTable tableTitle entityName chapterKind entityAnnotGroup/>
       </#list>
     </chapter>
   </#compress>
 </#macro>
 
-<#macro annotationsTable annotations chapterKind rootType>
-<#local isSingleton = (entityName == SINGLETON_IND)>
-<#local tableTitle = generateTableTitle(chapterKind, rootType) + isSingleton?string('', ' [${entityName}]')>
+<#macro annotationsTable tableTitle entityName chapterKind annotations>
 <table border='1'>
   <title>${tableTitle}</title>
   <col width='40%' />
@@ -114,7 +115,9 @@
   </#if>
 </#macro>
 
-<#macro annotationsLayoutSubstance reportData rootType>
+<#macro produceReport reportData metadata>
+  <#local rootType = metadata.rootType>
+  <#compress>
   <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
     <#if reportData?size gt 0>
       <#list reportData?keys as chapterKey>
@@ -123,6 +126,7 @@
       </#list>
     </#if>
   </book>
+  </#compress>
 </#macro>
 
 <#macro produceChapter chapterHash rootType chapterKey chapterNum>
@@ -200,16 +204,30 @@
   </#compress>
 </#macro>
 
-<!-- Helper Macros and functions -->
+<#-- Helper Macros and functions -->
 
-<#macro contentToReport>
-  <#compress>
-    <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
-      <#nested>
-    </book>
-  </#compress>
+<#macro wrapBook>
+  <book version='5.0' xmlns='http://docbook.org/ns/docbook' xmlns:xi='http://www.w3.org/2001/XInclude'>
+    <#nested>
+  </book>
 </#macro>
 
+<#macro wrapSingleChapter>
+  <chapter label='1'>
+    <#nested>
+  </chapter>
+</#macro>
+
+<#macro produceRootStandaloneTable annotations metadata>
+  <#local tableTitle = generateTableTitle(CHAPTER.ROOT, metadata.rootType)>
+  <#compress>
+    <@wrapBook>
+      <@wrapSingleChapter>
+        <@annotationsTable tableTitle metadata.rootName CHAPTER.ROOT annotations/>
+      </@wrapSingleChapter>
+    </@wrapBook>
+  </#compress>
+</#macro>
 
 <#macro entityNameDetailRecords annotation>
   <#local entityName = entityToName[annotation.entityType]>

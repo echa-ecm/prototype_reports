@@ -1,7 +1,6 @@
 <#global SINGLETON_IND = 'SINGLETON_IND'>
   <#global LEVELNAME = {'COMPOSITE_ENTITY': 'Top level'}>
     <#global ENTITY = {'SUBSTANCE': 'SUBSTANCE', 'MIXTURE': 'MIXTURE', 'TEMPLATE': 'TEMPLATE'}>
-      <#global SECTION = {'ROOT': 'ROOT', 'ACTIVE': 'ACTIVE', 'NON_ACTIVE': 'NON_ACTIVE', 'DISTANT_DESCENDANTS':  'DISTANT_DESCENDANTS'}>
         <#global CHAPTER = {
           'ROOT'                : 'ROOT',
           'ACTIVE'              : 'ACTIVE',
@@ -39,7 +38,7 @@
             'level': 'level',                     
             'historyList': 'historyList'
           }>
-<#global SECTION_TO_ANNEX_REQUIREMENT =
+<#global CHAPTER_TO_ANNEX_REQUIREMENT =
 {'1.3': 'Biocidal product manufacturer',
 '1.3.1': 'Location of manufacturing plants',
 '10': 'ENVIRONMENTAL FATE AND BEHAVIOUR',

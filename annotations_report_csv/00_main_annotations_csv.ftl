@@ -177,7 +177,7 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]>
 
 <#if output_extension == "RTF">
   <#assign reportData = computeRtfReportData(dataTable)>
-  <@layout_rtf.annotationsLayoutSubstance reportData rootType/>
+  <@layout_rtf.produceReport reportData rootType/>
 <#elseif output_extension == "CSV">
   <#assign reportData = {SINGLETON_IND: {SINGLETON_IND: dataTable}}>
   <@layout_csv.produceReport reportData layoutMetadata/>

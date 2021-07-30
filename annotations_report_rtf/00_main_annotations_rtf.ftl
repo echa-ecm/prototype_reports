@@ -17,11 +17,6 @@
 	-->
 <@com.initializeMainVariables/>
 
-<#assign layoutMetadata = {
-  'dossier' : _dossierHeader!,
-  'subject' : _subject,
-  'columnsOrdered' : layout_csv.reportTableProperties?keys
-}>
 
 <#assign rootEntity = entity.root>
 <#assign rootSubject = com.getReportSubject(rootDocument)>
@@ -29,15 +24,23 @@
 <#assign rootName = rootDocument.name>
 <#assign rootComponentFunctionHash = {}>
 
+<#assign layoutMetadata = {
+'dossier' : _dossierHeader!,
+'subject' : _subject,
+'columnsOrdered' : layout_csv.reportTableProperties?keys,
+'rootName': rootName,
+'rootType': rootType
+}>
+
 <#-- entityDocument is level=0 document or first document found when traversing -->
 <#function collectDocumentHash sectionDoc entityDocument sectionNode level isDocument>
-  <#-- Annotations are only at document level -->
+<#-- Annotations are only at document level -->
   <#if isDocument>
     <#return [{
-      'sectionDoc': sectionDoc,
-      'entityDocument': entityDocument,
-      'sectionNode': sectionNode,
-      'level': level
+    'sectionDoc': sectionDoc,
+    'entityDocument': entityDocument,
+    'sectionNode': sectionNode,
+    'level': level
     }]>
   </#if>
   <#return []>
@@ -54,7 +57,7 @@
   <#local populatedSeq = []>
   <#local annotationKeys = sectionDoc.annotations>
   <#if annotationKeys?has_content>
-    <#-- Get the annotations of the document and map them to a template specific hash -->
+  <#-- Get the annotations of the document and map them to a template specific hash -->
     <#local sectionName = utils.getSectionName(sectionNode)>
     <#local sectionDocType = utils.getSectionDocType(sectionDoc)>
     <#local isActiveSubstanceOfRoot = false>
@@ -72,25 +75,25 @@
       <#local reliability = utils.getPicklistFieldAsText(docHash.EvalInfo.Reliability)>
       <#local historyList = (utils.getFirstHistoryOnlyOfAnnotation(docHash)!'')>
       <#local annotationPopulated = {
-        'annotation'              : docHash,
-        'sectionDoc'              : sectionDoc,
-        'sectionDocType'          : sectionDocType,
-        'entityFunction'          : entityFunction,
-        'sectionNode'             : sectionNode,
-        'sectionName'             : sectionName,
-        'sectionNumber'           : sectionNumber,
-        'entityDocument'          : entityDocument,
-        'docUrl'                  : docUrl,
-        'key'                     : key,
-        'status'                  : status,
-        'confidentiality'         : confidentiality,
-        'agreement'               : agreement,
-        'evalInfo'                : evalInfo,
-        'isWaiverable'            : isWaiverable,
-        'reliability'             : reliability,
-        'isActiveSubstanceOfRoot' : isActiveSubstanceOfRoot,
-        'level'                   : level,
-        'historyList'             : historyList
+      'annotation'              : docHash,
+      'sectionDoc'              : sectionDoc,
+      'sectionDocType'          : sectionDocType,
+      'entityFunction'          : entityFunction,
+      'sectionNode'             : sectionNode,
+      'sectionName'             : sectionName,
+      'sectionNumber'           : sectionNumber,
+      'entityDocument'          : entityDocument,
+      'docUrl'                  : docUrl,
+      'key'                     : key,
+      'status'                  : status,
+      'confidentiality'         : confidentiality,
+      'agreement'               : agreement,
+      'evalInfo'                : evalInfo,
+      'isWaiverable'            : isWaiverable,
+      'reliability'             : reliability,
+      'isActiveSubstanceOfRoot' : isActiveSubstanceOfRoot,
+      'level'                   : level,
+      'historyList'             : historyList
       }>
       <#local populatedSeq = populatedSeq + [annotationPopulated]>
     </#list>
@@ -103,35 +106,35 @@
 <#function annotationMapper annotation>
   <#local ah = annotation>
   <#return {
-    FIELD.name                    : ah.annotation.AdminInfo.Name,
-    FIELD.type                    : ah.annotation.AdminInfo.AnnotationType,
-    FIELD.authority               : ah.annotation.AdminInfo.Authority,
-    FIELD.dataProtection          : ah.annotation.AdminInfo.DataProtection,
-    FIELD.docType                 : ah.annotation.documentType,
-    FIELD.status                  : ah.status,
-    FIELD.confidentiality         : ah.confidentiality,
-    FIELD.agreement               : ah.agreement,
-    FIELD.evalInfo                : ah.annotation.EvalInfo,
-    FIELD.remarks                 : ah.annotation.EvalInfo.Remarks,
-    FIELD.isWaiverable            : ah.annotation.EvalInfo.DataWaiverAcceptable,
-    FIELD.entityName              : ah.entityDocument.name,
-    FIELD.entityType              : ah.entityDocument.documentType,
-    FIELD.entityID                : ah.entityDocument.documentKey,
-    FIELD.entityDoc               : ah.entityDocument,
-    FIELD.sectionNode             : ah.sectionNode,
-    FIELD.sectionName             : ah.sectionName,
-    FIELD.sectionNumber           : ah.sectionNumber,
-    FIELD.sectionDocType          : ah.sectionDocType,
-    FIELD.entityFunction          : ah.entityFunction,
-    FIELD.docID                   : ah.sectionDoc.documentKey,
-    FIELD.docUrl                  : ah.docUrl,
-    FIELD.sectionDoc              : ah.sectionDoc,
-    FIELD.sectionDocAnnots        : ah.sectionDoc.annotations,
-    FIELD.key                     : ah.key,
-    FIELD.reliability             : ah.reliability,
-    FIELD.isActiveSubstanceOfRoot : ah.isActiveSubstanceOfRoot,
-    FIELD.level                   : ah.level,
-    FIELD.historyList             : ah.historyList
+  FIELD.name                    : ah.annotation.AdminInfo.Name,
+  FIELD.type                    : ah.annotation.AdminInfo.AnnotationType,
+  FIELD.authority               : ah.annotation.AdminInfo.Authority,
+  FIELD.dataProtection          : ah.annotation.AdminInfo.DataProtection,
+  FIELD.docType                 : ah.annotation.documentType,
+  FIELD.status                  : ah.status,
+  FIELD.confidentiality         : ah.confidentiality,
+  FIELD.agreement               : ah.agreement,
+  FIELD.evalInfo                : ah.annotation.EvalInfo,
+  FIELD.remarks                 : ah.annotation.EvalInfo.Remarks,
+  FIELD.isWaiverable            : ah.annotation.EvalInfo.DataWaiverAcceptable,
+  FIELD.entityName              : ah.entityDocument.name,
+  FIELD.entityType              : ah.entityDocument.documentType,
+  FIELD.entityID                : ah.entityDocument.documentKey,
+  FIELD.entityDoc               : ah.entityDocument,
+  FIELD.sectionNode             : ah.sectionNode,
+  FIELD.sectionName             : ah.sectionName,
+  FIELD.sectionNumber           : ah.sectionNumber,
+  FIELD.sectionDocType          : ah.sectionDocType,
+  FIELD.entityFunction          : ah.entityFunction,
+  FIELD.docID                   : ah.sectionDoc.documentKey,
+  FIELD.docUrl                  : ah.docUrl,
+  FIELD.sectionDoc              : ah.sectionDoc,
+  FIELD.sectionDocAnnots        : ah.sectionDoc.annotations,
+  FIELD.key                     : ah.key,
+  FIELD.reliability             : ah.reliability,
+  FIELD.isActiveSubstanceOfRoot : ah.isActiveSubstanceOfRoot,
+  FIELD.level                   : ah.level,
+  FIELD.historyList             : ah.historyList
   }>
 </#function>
 
@@ -145,11 +148,11 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]
 <#function createMixtureDataTables annotationSeq>
   <#local rootComponentAnnots = utils.filterIn(isInRootComponents, annotationSeq)>
   <#local activeSubstanceAnnots = utils.filterIn(isInActiveSubstances, annotationSeq)>
-  
+
   <#return {
-    'distantDescendantAnnots': utils.filterIn(isDistantDescendantAnnotation, annotationSeq),
-    'activeSubstanceAnnots': activeSubstanceAnnots,
-    'nonActiveSubstanceAnnots': utils.filterOut(isInActiveSubstances, rootComponentAnnots)
+  'distantDescendantAnnots': utils.filterIn(isDistantDescendantAnnotation, annotationSeq),
+  'activeSubstanceAnnots': activeSubstanceAnnots,
+  'nonActiveSubstanceAnnots': utils.filterOut(isInActiveSubstances, rootComponentAnnots)
   }>
 </#function>
 
@@ -180,7 +183,9 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]
 
 <#if output_extension == "RTF">
   <#assign reportData = computeRtfReportData(dataTable)>
-  <@layout_rtf.annotationsLayoutSubstance reportData rootType/>
+  <#assign rootAnnotMap = reportData[CHAPTER.ROOT]>
+  <#assign rootAnnots = rootAnnotMap[rootAnnotMap?keys?first]>
+  <@layout_rtf.produceReport reportData layoutMetadata/>
 <#elseif output_extension == "CSV">
   <#assign reportData = {SINGLETON_IND: {SINGLETON_IND: dataTable}}>
   <@layout_csv.produceReport reportData layoutMetadata/>
@@ -188,91 +193,22 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]
 
 <#function computeRtfReportData dataTable>
 <#-- select() and filter() table data for report tables   -->
-<#assign activeSubstanceAnnots = []>
-<#assign nonActiveSubstanceAnnots = []>
+  <#assign activeSubstanceAnnots = []>
+  <#assign nonActiveSubstanceAnnots = []>
 
-<#assign mainAnnots = utils.filterIn(isRootAnnotation, dataTable)>
-<#assign annotationSeqNotMain = utils.filterOut(isRootAnnotation, dataTable)>
+  <#assign mainAnnots = utils.filterIn(isRootAnnotation, dataTable)>
+  <#assign annotationSeqNotMain = utils.filterOut(isRootAnnotation, dataTable)>
 
-<#assign mainChapterData = utils.groupBy(['entityName'], mainAnnots)>
+  <#assign mainChapterData = utils.groupBy(['entityName'], mainAnnots)>
+  <#assign outlineData = {CHAPTER.ROOT: mainChapterData}>
 
-<#-- Separation based on being active substance is relevant for mixture -->
-<#if rootType==ENTITY.MIXTURE>
-  <#assign dts = createMixtureDataTables(dataTable)>
-  <#assign
-    activeSubstanceAnnots = dts.activeSubstanceAnnots
-    nonActiveSubstanceAnnots = dts.nonActiveSubstanceAnnots
-    distantDescendantAnnots = dts.distantDescendantAnnots
-  >
-  <#assign activeSubstanceDataTables = utils.groupBy(['entityName'], activeSubstanceAnnots)>
-  <#assign nonActiveSubstanceDataTables = utils.groupBy(['entityName'], nonActiveSubstanceAnnots)>
-  <#assign distantDescendantDataTables = {SINGLETON_IND: distantDescendantAnnots}>
-  <#return computeOutlineDataMixture(
-      rootName,
-      mainChapterData,
-      activeSubstanceDataTables,
-      nonActiveSubstanceDataTables,
-      distantDescendantDataTables
-    )>
-<#elseif rootType==ENTITY.SUBSTANCE>
-  <#return computeOutlineDataSubstance(
-    rootName,
-    mainChapterData
-  )>
-</#if>
-</#function>
-
-<#function computeOutlineDataMixture
-rootName
-mainAnnots
-activeSubstanceAnnots
-nonActiveSubstanceAnnots
-distantDescendantDataTables
->
-  <#return computeOutlineData(
-      ENTITY.MIXTURE,
-      rootName,
-      mainAnnots,
-      activeSubstanceAnnots,
-      nonActiveSubstanceAnnots,
-      distantDescendantDataTables
-    )
-  >
-</#function>
-
-<#function computeOutlineDataSubstance rootName mainAnnots>
-  <#return computeOutlineData(
-    ENTITY.SUBSTANCE,
-    rootName,
-    mainAnnots,
-    [],
-    [],
-    []
-  )>
-</#function>
-
-<#function computeOutlineData
-rootType
-rootName
-mainAnnots
-activeSubstanceAnnots
-nonActiveSubstanceAnnots
-distantDescendantDataTables
->
-  <#local mainAnnotData = {
-    SECTION.ROOT: mainAnnots
-  }>
-  <#local outlineData = mainAnnotData>
-  <#if rootType == ENTITY.SUBSTANCE>
-    <#return outlineData>
+  <#if rootType==ENTITY.MIXTURE>
+    <#assign dts = createMixtureDataTables(dataTable)>
+    <#assign outlineData = outlineData + {
+    CHAPTER.ACTIVE: utils.groupBy(['entityName'], dts.activeSubstanceAnnots),
+    CHAPTER.NON_ACTIVE: utils.groupBy(['entityName'], dts.nonActiveSubstanceAnnots),
+    CHAPTER.DISTANT_DESCENDANTS: {SINGLETON_IND: dts.distantDescendantAnnots}
+    }>
   </#if>
-  <#if rootType == ENTITY.MIXTURE>
-    <#local componentAnnotData = {
-        SECTION.ACTIVE: activeSubstanceAnnots,
-        SECTION.NON_ACTIVE: nonActiveSubstanceAnnots,
-        SECTION.DISTANT_DESCENDANTS: distantDescendantDataTables
-      }>
-    <#local outlineData = outlineData + componentAnnotData>
-    <#return outlineData>
-  </#if>
+  <#return outlineData>
 </#function>

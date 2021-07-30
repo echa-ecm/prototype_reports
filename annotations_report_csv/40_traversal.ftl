@@ -91,12 +91,13 @@ isDocument=true>
       <#list docElementNode?children as child>
         <#--  docHashSeq is unchanged when (isDocument=False) -->
         <#local newDocHashSeq = traverseDoc(
-         docElementNode=child
-         entityDocument=entityDocument
-         docHashSeq=newDocHashSeq
-         level=level+1
-         sectionNode=sectionNode
-         isDocument=false) >
+          child
+          entityDocument
+          newDocHashSeq
+          level+1
+          sectionNode
+          false
+        )>
       </#list>
     </#if>
   </#if>
