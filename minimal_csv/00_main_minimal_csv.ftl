@@ -72,10 +72,10 @@
 <#-- 2. filter({{function}}, {{data table}}): select rows where function evaluates to `true` -->
 
 <#-- 
-<#function isUnderSubstance docHash>
+<#function belongsToSubstance docHash>
 <#return docHash[FIELD.sectionName] == 'Substance'>
 </#function>
-<#assign dataTable = utils.filter(isUnderSubstance, dataTable)>
+<#assign dataTable = utils.filter(belongsToSubstance, dataTable)>
 -->
 
 <#-- 3. group_by({{sequence of keys}}, {{data table}}): split table by key value-->
