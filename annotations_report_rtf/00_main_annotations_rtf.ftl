@@ -184,7 +184,9 @@ rootAndComponentDocumentKeys = rootComponentKeys + [rootSubject.documentKey]
 <#if output_extension == "RTF">
   <#assign reportData = computeRtfReportData(dataTable)>
   <#assign rootAnnotMap = reportData[CHAPTER.ROOT]>
+  <#if rootAnnotMap?has_content>
   <#assign rootAnnots = rootAnnotMap[rootAnnotMap?keys?first]>
+  </#if>
   <@layout_rtf.produceReport reportData layoutMetadata/>
 <#elseif output_extension == "CSV">
   <#assign reportData = {SINGLETON_IND: {SINGLETON_IND: dataTable}}>
