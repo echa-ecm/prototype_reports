@@ -9,6 +9,8 @@
 <#-- iterate composition endpoint (substance only) and fetch coposition general name) -->
 <#-- get first composition endpoint only (substance only) and fetch coposition name and uuid) -->
 <#-- **TO DO** get category member content from the root entity that is a member of that category -->
+<#-- translation of hardcoded text
+<#-- example of retrieving a referenced document and field label -->
 <#-- get the traversal macro and use it to output a list (of reliability scores) -->
 
 
@@ -23,23 +25,34 @@
 <!-- Initialize common variables -->
 <@com.initializeMainVariables/>	
 
-<!-- Example template file -->
+<#--------------------------->
+<#-- EXAMPLE TEMPLATE FILE -->
+<#--------------------------->
 <#assign locale = "en" />
 <book version="5.0" xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude">
 
-	<#-- standard front page structure (note that tags *info *title *cover are mandatory)
+	<#-- standard front page structure (note that tags *info *title *cover are mandatory) -->
+
+	<#if isArticle(_subject)>
 	<info>
-        <title>This is my example title</title>
+        <title>Main Article</title>
 		<cover>
             <para>
-				This is some info on the cover page
+				This is some info on the cover page for an Article only
 			</para>
         </cover>
     </info>
-	-->
+	
+		<#-- all other entity types -->
+		<#else>
 
-	<#-- Get default front page -->
-	<@fp.getFrontPage _subject _dossierHeader "my example front page"/>
+		<#---------------------------->
+		<#-- GET DEFAULT FRONT PAGE -->
+		<#---------------------------->
+
+		<@fp.getFrontPage _subject _dossierHeader "my example front page"/>
+	
+	</#if>
 	
 	<!-- Part A -->
 	<part>
@@ -47,87 +60,112 @@
 		
 		<#-- each chapter is nested inside a *part - note that *part is optional -->
 		<chapter label="1">
-			<title role="HEAD-1">First Chapter</title>
-			<para>
+			<title role="HEAD-1">Basics</title>
 
-			<#--------------------------------------------------------------------->
-			<#-- use the root entity's document type to output root entity names -->
-			<#--------------------------------------------------------------------->
+			<section>
+			<title>Root entity name</title>
+				<para>
 
-				<#if isSubstance(_subject)>
-				Substance name:  <@com.text _subject.ChemicalName/>
+				<#--------------------------------------------------------------------->
+				<#-- use the root entity's document type to output root entity names -->
+				<#--------------------------------------------------------------------->
 
-					<#elseif isMixture(_subject)>
-					Mixture name: <@com.text _subject.MixtureName/>
+					<#if isSubstance(_subject)>
+					Substance name:  <@com.text _subject.ChemicalName/>
 
-						<#elseif isCategory(_subject)>
-						Category name: <@com.text _subject.CategoryName/>
+						<#elseif isMixture(_subject)>
+						Mixture name: <@com.text _subject.MixtureName/>
 
+							<#elseif isCategory(_subject)>
+							Category name: <@com.text _subject.CategoryName/>
+
+								<#elseif isArticle(_subject)>
+								Article name: <@com.text _subject.Identifiers.ArticleName/>
+
+					</#if>
+
+				</para>
+			</section>
+
+			<#------------------------------------------------------------------------------>
+			<#-- extract the structural formula from the substance's reference substance --->
+			<#-- This uses a path to the reference substance reference and a common macro -->
+			<#------------------------------------------------------------------------------>
+
+			<section>
+			<title>Reference substance's structural formula</title>
+				<#if isSubstance(_subject)>	
+				<para>
+					<@com.structuralFormula com.getReferenceSubstanceKey(_subject.ReferenceSubstance.ReferenceSubstance) 100 true/>			
+				</para>
 				</#if>
-
-			</para>
-
-			<#if isSubstance(_subject)>	
-			<para>
-				<#------------------------------------------------------------------------------>
-				<#-- extract the structural formula from the substance's reference substance --->
-				<#-- This uses a path to the reference substance reference and a common macro -->
-				<#------------------------------------------------------------------------------>
-				
-				<@com.structuralFormula com.getReferenceSubstanceKey(_subject.ReferenceSubstance.ReferenceSubstance) 100 true/>			
-			</para>
-			</#if>
-			
-			<#---------------------------------------------------------------------------->
-			<#-- Chapter to show iteration of a composition endpoint and its documents --->
-			<#---------------------------------------------------------------------------->
-
-			<#if isSubstance(_subject)>
-
-				<#assign compositionList = iuclid.getSectionDocumentsForParentKey(_subject.documentKey, "FLEXIBLE_RECORD", "SubstanceComposition") />
-				
-				<#if compositionList?has_content>
-				<#assign compositionRecord = compositionList[0] />
-
-					<table border="1">
-						<title>Example table</title>
-						<col width="100%" />
-						<tbody>
-							<tr>
-								<th><emphasis role="bold">Composition name</emphasis></th>
-							</tr>
-
-							<#-- iterate composition documents with Freemarker #List directive --->
-							<#-- a new table row (TR) will appear for every compositon document -->
-							<#list compositionList as composition>							
-								<tr>
-									<td>
-										<#-- composition general information name extraction -->
-										<@com.text composition.GeneralInformation.Name/>
-									</td>
-								</tr>
-							</#list>
-
-								<tr>
-									<td>
-										<#-- first composition only -->
-										<para>First composition name: <@com.text compositionRecord.name/></para>
-										<para>First composition uuid: <@com.text compositionRecord.documentKey.uuid/></para>
-										
-									</td>
-								</tr>
-
-						</tbody>
-					</table>
-				</#if>
-			</#if>
-
+			</section>
+		
 		</chapter>
+			
+		<#---------------------------------------------------------------------------->
+		<#-- chapter to show iteration of a composition endpoint and its documents --->
+		<#---------------------------------------------------------------------------->
+
+		<chapter label="2">
+			<title role="HEAD-1">Simple endpoint iteration</title>
+			
+				<#if isSubstance(_subject)>
+
+					<#assign compositionList = iuclid.getSectionDocumentsForParentKey(_subject.documentKey, "FLEXIBLE_RECORD", "SubstanceComposition") />
+					
+					<#if compositionList?has_content>
+
+					<#-- only output the first composition endpoint's document -->
+					<#assign compositionRecord = compositionList[0] />
+
+						<table border="1">
+							<title>Example table</title>
+							<col width="100%" />
+							<tbody>
+								<tr>
+									<th><emphasis role="bold">Composition name</emphasis></th>
+								</tr>
+
+								<#-- iterate composition documents with Freemarker #List directive --->
+								<#-- a new table row (TR) will appear for every compositon document -->
+								<#list compositionList as composition>							
+									<tr>
+										<td>
+											<#-- composition general information name extraction -->
+											<@com.text composition.GeneralInformation.Name/>
+										</td>
+									</tr>
+								</#list>
+
+									<tr>
+										<td>
+											<#-- first composition only -->
+
+											<#-- name of the composition document -->
+											<para>First composition name: <@com.text compositionRecord.name/></para>
+											
+											<#-- uuid of the composition document -->
+											<para>First composition uuid: <@com.text compositionRecord.documentKey.uuid/></para>
+											
+										</td>
+									</tr>
+
+							</tbody>
+						</table>
+					</#if>
+				</#if>
+
+			</chapter>
+		
+		<#--------------------------->
+		<#-- IMPORT COMMON MODULE --->
+		<#--------------------------->
 		
 		<#if isSubstance(_subject) || isMixture(_subject)>
-		<chapter label="2">
+		<chapter label="3">
 		
-			<title role="HEAD-1">Second chapter - import an environmental hazard study out of the box</title>
+			<title role="HEAD-1">Import a common module - environmental hazard endpoint study </title>
 			
 			<section>
 				<title role="HEAD-4">Long-term toxicity to aquatic invertebrates</title>
@@ -136,6 +174,68 @@
 		
 		</chapter>
 		</#if>
+
+		<#------------------>
+		<#-- TRANSLATIONS -->
+		<#------------------>
+
+		<chapter label="4">		
+			<title role="HEAD-1">Translated text from property files</title>			
+
+		<#-- assign a variable for each translated text -->
+		<#assign titleEl = iuclid.text('title', 'el', 'localizations') />
+    	<#assign titleBg = iuclid.text('title', 'bg', 'localizations') />
+		<#assign titleDe = iuclid.text('my_translated_text', 'de', 'localizations') />
+
+			<section>
+				<title>${titleBg}</title>
+
+					<para>${titleDe}</para>
+			</section>
+		</chapter>
+
+		<#--------------------------------->
+		<#-- EXAMPLE OF LINKED REFERENCE -->
+		<#--------------------------------->
+
+		<chapter label="5">		
+			<title role="HEAD-1">Get a linked reference (in this case, a literature reference in a melting point endpoint)</title>
+
+		<#if isSubstance(_subject) || isMixture(_subject)>
+
+			<#assign meltingPointList = iuclid.getSectionDocumentsForParentKey(_subject.documentKey, "ENDPOINT_STUDY_RECORD", "Melting") />
+			<#if meltingPointList?has_content>
+				<#list meltingPointList as meltingPoint>
+					<#if meltingPoint?has_content>
+						<#list meltingPoint.DataSource.Reference as meltingLiterature>
+
+							<#-- get the document key of the linked reference to access its field data -->
+							<#assign meltingPointLiteratureReference = iuclid.getDocumentForKey(meltingLiterature) />
+								<#if meltingPointLiteratureReference?has_content>
+									<para>
+									<#-- get the IUCLID field label name -->
+									<@iuclid.label for=meltingPointLiteratureReference.GeneralInfo.LiteratureType var="refType"/>
+									This is the actual field label name for the literature reference type: 
+									${refType}
+									</para>
+
+									<#--output the reference type -->
+									<para>
+									<@com.picklist meltingPointLiteratureReference.GeneralInfo.LiteratureType />
+									</para>
+								</#if>
+						</#list>
+					</#if>
+				</#list>
+			</#if>
+
+		</#if>
+				
+		</chapter>
+
+		<#------------------->
+		<#-- LIST APPROACH -->
+		<#------------------->
 
 		<#-- Define the main macro to be used to retrieve output by the traversal approach -->
 		<#assign mainMacroName = "printIfDocumentTypeIsEndpointStudyRecord"/>
@@ -152,7 +252,7 @@
 
 		<#if isSubstance(_subject) || isMixture(_subject)>
 
-		<chapter label="1">
+		<chapter label="6">
         <title role="HEAD-1">Listing through the IUCLID tree</title>
 
 			<para role="small">
@@ -288,5 +388,15 @@
 </#if>
 	<#return false>
 </#function>
+
+<#function isArticle _subject>
+<#if _subject.documentType=="ARTICLE">
+	<#return true>
+<#else>
+	<#return false>
+</#if>
+	<#return false>
+</#function>
+
 
 
